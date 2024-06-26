@@ -1,0 +1,10 @@
+{
+    "BGImagePath": "-dir-/Example.png",
+    "FontColor": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+    },
+    "FontSize": 128,
+    "Font": null
+}
