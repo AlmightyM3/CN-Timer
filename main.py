@@ -13,18 +13,15 @@ myTuple= ("A", "M", "A", "N", "D", "A")
 if not pygame.font:
     print("Pygame font module not found.")
     exit()
-dirPath = os.path.dirname(os.path.abspath(__file__))
+dirPath = os.path.dirname(os.path.abspath(__file__)).lower()
+if "\\" in dirPath:
+    dirPath = dirPath.replace("\\", "/")
 
 def importImage():
-    file_path = filedialog.askopenfilename(title="Select a file", filetypes=[("PNG files", "*.png"), ("JPG files", "*.jpg"), ("All files", "*.*")])
+    file_path = filedialog.askopenfilename(title="Select a file", filetypes=[("PNG files", "*.png"), ("JPG files", "*.jpg"), ("All files", "*.*")]).lower()
     if file_path:
-        if '\\' in file_path:
-            file_path.replace('\\', '/')
-        print(file_path)
-        print(dirPath)
         if dirPath in file_path:
             file_path = file_path.replace(dirPath, "-dir-")
-            print(file_path)
         return file_path
     return False
 
@@ -32,6 +29,8 @@ if __name__ == "__main__":
     pygame.init()
     window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     clock = pygame.time.Clock()
+    pygame.display.set_caption("CN-Timer")
+    pygame.display.set_icon(pygame.image.load(dirPath+"/icon.png"))
     run = True
 
     with open(dirPath+"/data.json", "r") as file:
@@ -62,6 +61,7 @@ if __name__ == "__main__":
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 root = Tk()
                 root.attributes("-topmost", True)
+                root.iconbitmap(dirPath+"/Icon.ico")
                 
                 ttk.Label(root, text=" {Amanda is so cool} " if random.random() < 0.03 else "  The Cool Menu  ", font='Helvetica 14 bold').pack()
 
