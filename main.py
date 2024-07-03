@@ -1,8 +1,5 @@
-from tkinter import *
-from tkinter import ttk, filedialog, colorchooser
-
 import pygame
-
+import pygame_gui
 import random
 import time
 import json
@@ -17,20 +14,13 @@ dirPath = os.path.dirname(os.path.abspath(__file__)).lower()
 if "\\" in dirPath:
     dirPath = dirPath.replace("\\", "/")
 
-def importImage():
-    file_path = filedialog.askopenfilename(title="Select a file", filetypes=[("PNG files", "*.png"), ("JPG files", "*.jpg"), ("All files", "*.*")]).lower()
-    if file_path:
-        if dirPath in file_path:
-            file_path = file_path.replace(dirPath, "-dir-")
-        return file_path
-    return False
-
 if __name__ == "__main__":
     pygame.init()
     window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     clock = pygame.time.Clock()
     pygame.display.set_caption("CN-Timer")
     pygame.display.set_icon(pygame.image.load(dirPath+"/icon.png"))
+    DT = 1
     run = True
 
     with open(dirPath+"/data.json", "r") as file:
@@ -39,6 +29,21 @@ if __name__ == "__main__":
     bgImage = pygame.transform.scale(pygame.image.load(dirPath+data["BGImagePath"][5:] if "-dir-" in data["BGImagePath"] else data["BGImagePath"]), pygame.display.get_window_size()).convert()
     font = pygame.font.Font(data["Font"], data["FontSize"])
     fontColor = (data["FontColor"]["r"],data["FontColor"]["g"],data["FontColor"]["b"])
+
+    GUImanager = pygame_gui.UIManager(pygame.display.get_window_size())
+    GUIactive = False
+    GUIback = pygame_gui.elements.UIPanel(relative_rect=pygame.Rect((75, 75), (275, 550)), manager=GUImanager)
+    title = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((25, 25), (225, 50)), text="{Amanda is so cool}" if random.random() < 0.03 else "The Cool Menu", manager=GUImanager, container = GUIback)
+
+    backgroundButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-80, 100), (160, 50)), text='Change Background', manager=GUImanager, container = GUIback)
+    colorButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-85, 175), (170, 50)), text='Change Text Color', manager=GUImanager, container = GUIback)
+    fontSizeLable = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((138-115, 250), (170, 50)), text="Change Font Size:", manager=GUImanager, container = GUIback)
+    fontSizeEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((138+40, 255), (60, 40)), initial_text='', manager=GUImanager, container = GUIback)
+    fontLable = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((138-100, 325), (130, 50)), text="Change Font:", manager=GUImanager, container = GUIback)
+    fontEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((138+20, 330), (80, 40)), initial_text='', manager=GUImanager, container = GUIback)
+
+    backButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-35, 400), (70, 50)), text='Back', manager=GUImanager, container = GUIback)
+    exitButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-35, 475), (70, 50)), text='Quit', manager=GUImanager, container = GUIback)
 
     while run:
         window.blit(bgImage, (0,0))
@@ -51,60 +56,29 @@ if __name__ == "__main__":
         text = font.render(f"{minLeft}:{secLeft if secLeft>=10 else '0'+str(secLeft)}", True, fontColor)
         textPos = text.get_rect(center=(pygame.display.get_window_size()[0]/2, pygame.display.get_window_size()[1]/2))
         window.blit(text, textPos)
+
+        if GUIactive:
+            GUImanager.update(DT)
+            GUImanager.draw_ui(window)
         
         pygame.display.flip()
-        clock.tick(30)
+        DT = clock.tick(30)/1000
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                root = Tk()
-                root.attributes("-topmost", True)
-                root.iconbitmap(dirPath+"/Icon.ico")
-                
-                ttk.Label(root, text=" {Amanda is so cool} " if random.random() < 0.03 else "  The Cool Menu  ", font='Helvetica 14 bold').pack()
-
-                def updateBGImage():
-                    path = importImage()
-                    if path:
-                        with open(dirPath+"/data.json", 'r+') as f:
-                            data = json.load(f)
-                            data['BGImagePath'] = path 
-                            f.seek(0) 
-                            json.dump(data, f, indent=4)
-                            f.truncate() 
-                def updateColor():
-                    color = colorchooser.askcolor()[0]
-                    
-                    with open(dirPath+"/data.json", 'r+') as f:
-                        data = json.load(f)
-                        data['FontColor']['r'] = color[0]
-                        data['FontColor']['g'] = color[1]
-                        data['FontColor']['b'] = color[2]
-                        f.seek(0) 
-                        json.dump(data, f, indent=4)
-                        f.truncate() 
-                    
-                ttk.Button(root, text="Change background", command=updateBGImage).pack()
-                ttk.Button(root, text="Change timer color", command=updateColor).pack()
-                
-                ttk.Label(root, text="Font: ").pack()
-                FC = Entry(root, width=10)
-                FC.pack()
-                
-                ttk.Label(root, text="Font size: ").pack()
-                FS = Entry(root, width=5)
-                FS.pack()
-                
-                def quit():
-                    global run
-                    root.destroy()
+                if GUIactive:
+                    GUIactive = False
+                else:
+                    GUIactive = True
+            
+            GUImanager.process_events(event)
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == exitButton:
                     run = False
-                def back():
-                    global bgImage, font, fontColor
-
-                    newFont = FC.get()
+                elif event.ui_element == backButton:
+                    newFont = fontEntery.get_text()
                     if newFont:
                         newFont = newFont.lower()
                         if newFont in pygame.font.get_fonts():
@@ -116,7 +90,7 @@ if __name__ == "__main__":
                                 json.dump(data, f, indent=4)
                                 f.truncate() 
                     
-                    newFontSize = FS.get()
+                    newFontSize = fontSizeEntery.get_text()
                     if newFontSize:
                         try: 
                             newFontSize = abs(int(newFontSize))
@@ -129,15 +103,44 @@ if __name__ == "__main__":
                         except: 
                             pass
                     
-                    root.destroy()
                     with open(dirPath+"/data.json", "r") as file:
                         data = json.load(file)
                     
                     bgImage = pygame.transform.scale(pygame.image.load(dirPath+data["BGImagePath"][5:] if "-dir-" in data["BGImagePath"] else data["BGImagePath"]), pygame.display.get_window_size()).convert()
                     font = pygame.font.Font(data["Font"], data["FontSize"])
                     fontColor = (data["FontColor"]["r"],data["FontColor"]["g"],data["FontColor"]["b"])
-                ttk.Button(root, text="Back", command=back).pack()
-                ttk.Button(root, text="Quit", command=quit).pack()
+                    GUIactive = False
                 
-                root.mainloop()
+                elif event.ui_element == colorButton:
+                    colour_picker = pygame_gui.windows.UIColourPickerDialog(pygame.Rect(160, 50, 420, 400), GUImanager, window_title='Change Colour...')
+                elif event.ui_element == backgroundButton:
+                    file_dialog = pygame_gui.windows.UIFileDialog(pygame.Rect(160, 50, 440, 500), GUImanager, window_title='Load Image...', initial_file_path=dirPath, allow_picking_directories=False, allow_existing_files_only=True, allowed_suffixes={".png",".jpg"})
+
+            if event.type == pygame_gui.UI_FILE_DIALOG_PATH_PICKED:
+                try:
+                    image_path = pygame_gui.core.utility.create_resource_path(event.text)
+                    image_path  = image_path.lower()
+                    if "\\" in image_path:
+                        image_path = image_path.replace("\\", "/")
+                    if dirPath in image_path:
+                        image_path = image_path.replace(dirPath, "-dir-")
+                    
+                    with open(dirPath+"/data.json", 'r+') as f:
+                        data = json.load(f)
+                        data['BGImagePath'] = image_path 
+                        f.seek(0) 
+                        json.dump(data, f, indent=4)
+                        f.truncate() 
+                except pygame.error:
+                    pass
+            if event.type == pygame_gui.UI_COLOUR_PICKER_COLOUR_PICKED:
+                color = event.colour
+                with open(dirPath+"/data.json", 'r+') as f:
+                    data = json.load(f)
+                    data['FontColor']['r'] = color[0]
+                    data['FontColor']['g'] = color[1]
+                    data['FontColor']['b'] = color[2]
+                    f.seek(0) 
+                    json.dump(data, f, indent=4)
+                    f.truncate() 
     pygame.quit()
