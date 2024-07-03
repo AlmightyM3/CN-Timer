@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+#import asyncio
 import random
 import time
 import json
@@ -14,7 +15,7 @@ dirPath = os.path.dirname(os.path.abspath(__file__)).lower()
 if "\\" in dirPath:
     dirPath = dirPath.replace("\\", "/")
 
-if __name__ == "__main__":
+def main(): #async 
     pygame.init()
     window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     clock = pygame.time.Clock()
@@ -46,6 +47,7 @@ if __name__ == "__main__":
     exitButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-35, 475), (70, 50)), text='Quit', manager=GUImanager, container = GUIback)
 
     while run:
+        #await asyncio.sleep(0)
         window.blit(bgImage, (0,0))
         currentTime = time.localtime()
         currentMin = currentTime.tm_min % 60
@@ -144,3 +146,7 @@ if __name__ == "__main__":
                     json.dump(data, f, indent=4)
                     f.truncate() 
     pygame.quit()
+
+if __name__ == "__main__":
+    main()
+    #asyncio.run(main())
