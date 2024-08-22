@@ -8,4 +8,3 @@ The goal of this project is to create a better timer system for use at a Code Ni
 - Ensure unnecessary libraries aren't included in build.
 - Comment code.
 - Additional customization options?
-- Display actual time?

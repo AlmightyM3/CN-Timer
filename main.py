@@ -28,23 +28,30 @@ def main(): #async
         data = json.load(file)
     
     bgImage = pygame.transform.scale(pygame.image.load(dirPath+data["BGImagePath"][5:] if "-dir-" in data["BGImagePath"] else data["BGImagePath"]), pygame.display.get_window_size()).convert()
-    font = pygame.font.Font(data["Font"], data["FontSize"])
+    countdownFont = pygame.font.Font(data["Font"], data["CountdownFontSize"])
+    clockFont = pygame.font.Font(data["Font"], data["ClockFontSize"])
     fontColor = (data["FontColor"]["r"],data["FontColor"]["g"],data["FontColor"]["b"])
+    clockOffset = data["ClockOffset"]
 
     GUImanager = pygame_gui.UIManager(pygame.display.get_window_size())
     GUIactive = False
-    GUIback = pygame_gui.elements.UIPanel(relative_rect=pygame.Rect((75, 75), (275, 550)), manager=GUImanager)
-    title = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((25, 25), (225, 50)), text="{Amanda is so cool}" if random.random() < 0.03 else "The Cool Menu", manager=GUImanager, container = GUIback)
+    GUIback = pygame_gui.elements.UIPanel(relative_rect=pygame.Rect((75, 75), (300, 700)), manager=GUImanager)
+    title = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((300/2-225/2, 25), (225, 50)), text="{Amanda is so cool}" if random.random() < 0.05 else "The Cool Menu", manager=GUImanager, container = GUIback)
 
-    backgroundButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-80, 100), (160, 50)), text='Change Background', manager=GUImanager, container = GUIback)
-    colorButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-85, 175), (170, 50)), text='Change Text Color', manager=GUImanager, container = GUIback)
-    fontSizeLable = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((138-115, 250), (170, 50)), text="Change Font Size:", manager=GUImanager, container = GUIback)
-    fontSizeEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((138+40, 255), (60, 40)), initial_text='', manager=GUImanager, container = GUIback)
-    fontLable = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((138-100, 325), (130, 50)), text="Change Font:", manager=GUImanager, container = GUIback)
-    fontEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((138+20, 330), (80, 40)), initial_text='', manager=GUImanager, container = GUIback)
+    backgroundButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((150-80, 100), (160, 50)), text='Change Background', manager=GUImanager, container = GUIback)
+    colorButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((150-85, 175), (170, 50)), text='Change Text Color', manager=GUImanager, container = GUIback)
+    countdownFontSizeLable = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((150-125, 250), (170, 50)), text="Change Timer Font Size:", manager=GUImanager, container = GUIback)
+    countdownFontSizeEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((150+50, 255), (90, 40)), initial_text='', manager=GUImanager, container = GUIback)
+    clockFontSizeLable = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((150-125, 325), (170, 50)), text="Change Clock Font Size:", manager=GUImanager, container = GUIback)#
+    clockFontSizeEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((150+50, 330), (90, 40)), initial_text='', manager=GUImanager, container = GUIback)
+    fontLable = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((150-100, 400), (130, 50)), text="Change Font:", manager=GUImanager, container = GUIback)
+    fontEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((150+20, 405), (80, 40)), initial_text='', manager=GUImanager, container = GUIback)
+    offsetLable = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((150-120, 475), (140, 50)), text="Change Clock Offset:", manager=GUImanager, container = GUIback)
+    offsetXEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((150+25, 480), (40, 40)), initial_text='', manager=GUImanager, container = GUIback)
+    offsetYEntery = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((150+70, 480), (40, 40)), initial_text='', manager=GUImanager, container = GUIback)
 
-    backButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-35, 400), (70, 50)), text='Back', manager=GUImanager, container = GUIback)
-    exitButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((138-35, 475), (70, 50)), text='Quit', manager=GUImanager, container = GUIback)
+    backButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((150-35, 550), (70, 50)), text='Back', manager=GUImanager, container = GUIback)
+    exitButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((150-35, 625), (70, 50)), text='Quit', manager=GUImanager, container = GUIback)
 
     while run:
         #await asyncio.sleep(0)
@@ -53,10 +60,15 @@ def main(): #async
         currentMin = currentTime.tm_min % 60
         currentSec = currentTime.tm_sec % 60
         minLeft = (49-currentMin) % 50 if currentMin<50 else (59-currentMin) % 10
-        secLeft = (59 - currentSec) % 60
+        secLeft = (60 - currentSec) % 59
 
-        text = font.render(f"{minLeft}:{secLeft if secLeft>=10 else '0'+str(secLeft)}", True, fontColor)
+        text = countdownFont.render(f"{minLeft}:{secLeft if secLeft>=10 else '0'+str(secLeft)}", True, fontColor)
         textPos = text.get_rect(center=(pygame.display.get_window_size()[0]/2, pygame.display.get_window_size()[1]/2))
+        window.blit(text, textPos)
+
+        text = clockFont.render(f"{currentTime.tm_hour%12}:{currentTime.tm_min if currentTime.tm_min>=10 else '0'+str(currentTime.tm_min)}:{currentTime.tm_sec if currentTime.tm_sec>=10 else '0'+str(currentTime.tm_sec)}", True, fontColor)
+        s=text.get_bounding_rect().bottomright
+        textPos = text.get_rect(center=(pygame.display.get_window_size()[0]-s[0]/2-clockOffset[0], s[1]/2+clockOffset[1]))
         window.blit(text, textPos)
 
         if GUIactive:
@@ -92,13 +104,51 @@ def main(): #async
                                 json.dump(data, f, indent=4)
                                 f.truncate() 
                     
-                    newFontSize = fontSizeEntery.get_text()
+                    newFontSize = countdownFontSizeEntery.get_text()
                     if newFontSize:
                         try: 
                             newFontSize = abs(int(newFontSize))
                             with open(dirPath+"/data.json", 'r+') as f:
                                 data = json.load(f)
-                                data['FontSize'] = newFontSize 
+                                data['CountdownFontSize'] = newFontSize 
+                                f.seek(0) 
+                                json.dump(data, f, indent=4)
+                                f.truncate() 
+                        except: 
+                            pass
+                    
+                    newFontSize = clockFontSizeEntery.get_text()
+                    if newFontSize:
+                        try: 
+                            newFontSize = abs(int(newFontSize))
+                            with open(dirPath+"/data.json", 'r+') as f:
+                                data = json.load(f)
+                                data['ClockFontSize'] = newFontSize 
+                                f.seek(0) 
+                                json.dump(data, f, indent=4)
+                                f.truncate() 
+                        except: 
+                            pass
+                    
+                    newOffsetX = offsetXEntery.get_text()
+                    if newOffsetX:
+                        try: 
+                            newOffsetX = abs(int(newOffsetX))
+                            with open(dirPath+"/data.json", 'r+') as f:
+                                data = json.load(f)
+                                data['ClockOffset'][0] = newOffsetX 
+                                f.seek(0) 
+                                json.dump(data, f, indent=4)
+                                f.truncate() 
+                        except: 
+                            pass
+                    newOffsetY = offsetYEntery.get_text()
+                    if newOffsetY:
+                        try: 
+                            newOffsetY = abs(int(newOffsetY))
+                            with open(dirPath+"/data.json", 'r+') as f:
+                                data = json.load(f)
+                                data['ClockOffset'][1] = newOffsetY 
                                 f.seek(0) 
                                 json.dump(data, f, indent=4)
                                 f.truncate() 
@@ -109,8 +159,10 @@ def main(): #async
                         data = json.load(file)
                     
                     bgImage = pygame.transform.scale(pygame.image.load(dirPath+data["BGImagePath"][5:] if "-dir-" in data["BGImagePath"] else data["BGImagePath"]), pygame.display.get_window_size()).convert()
-                    font = pygame.font.Font(data["Font"], data["FontSize"])
+                    countdownFont = pygame.font.Font(data["Font"], data["CountdownFontSize"])
+                    clockFont = pygame.font.Font(data["Font"], data["ClockFontSize"])
                     fontColor = (data["FontColor"]["r"],data["FontColor"]["g"],data["FontColor"]["b"])
+                    clockOffset = data["ClockOffset"]
                     GUIactive = False
                 
                 elif event.ui_element == colorButton:

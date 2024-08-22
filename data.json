@@ -5,6 +5,11 @@
         "g": 255,
         "b": 255
     },
-    "FontSize": 300,
+    "CountdownFontSize": 450,
+    "ClockFontSize": 250,
+    "ClockOffset": [
+        50,
+        50
+    ],
     "Font": null
 }
